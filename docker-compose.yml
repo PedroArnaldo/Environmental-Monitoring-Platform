@@ -1,0 +1,81 @@
+services:
+  sensor-db:
+    image: postgres:16-alpine
+    container_name: sensor-db
+    environment:
+      POSTGRES_DB: sensores_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./src/SensorService/infra/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sensores_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sensor-net
+
+  alert-db:
+    image: postgres:16-alpine
+    container_name: alert-db
+    environment:
+      POSTGRES_DB: alertas_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./src/AlertService/infra/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d alertas_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - alert-net
+
+  sensor-service:
+    build:
+      context: ./src/SensorService
+      dockerfile: Dockerfile
+    container_name: sensor-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=sensor-db;Port=5432;Database=sensores_db;Username=postgres;Password=postgres
+    ports:
+      - "5001:8080"
+    depends_on:
+      sensor-db:
+        condition: service_healthy
+    networks:
+      - sensor-net
+      - services-net
+
+  alert-service:
+    build:
+      context: ./src/AlertService
+      dockerfile: Dockerfile
+    container_name: alert-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=alert-db;Port=5432;Database=alertas_db;Username=postgres;Password=postgres
+    ports:
+      - "5002:8080"
+    depends_on:
+      alert-db:
+        condition: service_healthy
+    networks:
+      - alert-net
+      - services-net
+
+networks:
+  sensor-net:
+    driver: bridge
+    internal: true
+  alert-net:
+    driver: bridge
+    internal: true
+  services-net:
+    driver: bridge
+    internal: true
