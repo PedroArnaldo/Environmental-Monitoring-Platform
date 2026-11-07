@@ -1,5 +1,7 @@
 # Plataforma de Monitoramento Ambiental
 
+> 📄 Documento de especificação do Projeto de Extensão (UVA). Ele descreve o sistema completo planejado; o que já está implementado e o roadmap estão no [README em inglês](README.md).
+
 Sistema distribuído baseado em **microsserviços** para coleta de leituras de sensores ambientais e geração automática de alertas quando índices críticos são atingidos. Desenvolvido como Projeto de Extensão do curso de Engenharia de Computação da Universidade Veiga de Almeida (UVA).
 
 ---
